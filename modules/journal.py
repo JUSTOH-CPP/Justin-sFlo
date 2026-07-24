@@ -11,7 +11,7 @@ from .db import get_conn
 
 def log_trade(instrument, direction, entry_price, stop_price, size_units,
               account_balance_at_entry, target_price=None, setup_tag=None,
-              emotion_before=None, notes=None):
+              emotion_before=None, notes=None, plan_id=None):
     """Log a new open trade. Risk % and planned R are derived from the
     prices entered, not typed in separately, so they can never silently
     drift from the actual numbers."""
@@ -31,12 +31,12 @@ def log_trade(instrument, direction, entry_price, stop_price, size_units,
         cur = conn.execute("""
             INSERT INTO trades (opened_at, instrument, direction, entry_price, stop_price,
                 target_price, size_units, account_balance_at_entry, risk_pct,
-                planned_r_multiple, setup_tag, emotion_before, notes, status)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, 'open')
+                planned_r_multiple, setup_tag, emotion_before, notes, plan_id, status)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'open')
         """, (datetime.now().isoformat(timespec="seconds"), instrument, direction,
               entry_price, stop_price, target_price, size_units,
               account_balance_at_entry, risk_pct, planned_r, setup_tag,
-              emotion_before, notes))
+              emotion_before, notes, plan_id))
         return cur.lastrowid
 
 

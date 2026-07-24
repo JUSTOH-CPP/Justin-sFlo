@@ -35,6 +35,16 @@ CREATE TABLE IF NOT EXISTS trades (
     status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','closed'))
 );
 
+CREATE TABLE IF NOT EXISTS plans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    criteria TEXT,
+    invalidation TEXT,
+    management_rules TEXT,
+    is_active INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS discipline_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     trade_id INTEGER REFERENCES trades(id),
@@ -59,6 +69,18 @@ def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with get_conn() as conn:
         conn.executescript(SCHEMA)
+    _migrate()
+
+
+def _migrate():
+    """Lightweight schema migrations for DBs created before a given
+    column/table existed. CREATE TABLE IF NOT EXISTS in SCHEMA handles new
+    tables automatically; this handles new COLUMNS on existing tables,
+    which SQLite has no IF NOT EXISTS shorthand for."""
+    with get_conn() as conn:
+        existing_cols = {row["name"] for row in conn.execute("PRAGMA table_info(trades)")}
+        if "plan_id" not in existing_cols:
+            conn.execute("ALTER TABLE trades ADD COLUMN plan_id INTEGER REFERENCES plans(id)")
 
 
 @contextmanager
