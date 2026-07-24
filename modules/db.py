@@ -19,12 +19,12 @@ CREATE TABLE IF NOT EXISTS trades (
     instrument TEXT NOT NULL,
     direction TEXT NOT NULL CHECK(direction IN ('long','short')),
     entry_price REAL NOT NULL,
-    stop_price REAL NOT NULL,
+    stop_price REAL,
     target_price REAL,
     exit_price REAL,
     size_units REAL NOT NULL,
     account_balance_at_entry REAL NOT NULL,
-    risk_pct REAL NOT NULL,
+    risk_pct REAL,
     planned_r_multiple REAL,
     realized_r_multiple REAL,
     setup_tag TEXT,
@@ -76,11 +76,68 @@ def _migrate():
     """Lightweight schema migrations for DBs created before a given
     column/table existed. CREATE TABLE IF NOT EXISTS in SCHEMA handles new
     tables automatically; this handles new COLUMNS on existing tables,
-    which SQLite has no IF NOT EXISTS shorthand for."""
+    and the one constraint change SQLite can't do with ALTER TABLE, which
+    SQLite has no IF NOT EXISTS shorthand for."""
     with get_conn() as conn:
-        existing_cols = {row["name"] for row in conn.execute("PRAGMA table_info(trades)")}
-        if "plan_id" not in existing_cols:
+        cols_info = {row["name"]: row for row in conn.execute("PRAGMA table_info(trades)")}
+
+        if "plan_id" not in cols_info:
             conn.execute("ALTER TABLE trades ADD COLUMN plan_id INTEGER REFERENCES plans(id)")
+            cols_info = {row["name"]: row for row in conn.execute("PRAGMA table_info(trades)")}
+
+        if "mt5_ticket" not in cols_info:
+            conn.execute("ALTER TABLE trades ADD COLUMN mt5_ticket INTEGER")
+
+        conn.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_trades_mt5_ticket
+            ON trades(mt5_ticket) WHERE mt5_ticket IS NOT NULL
+        """)
+
+        # stop_price/risk_pct used to be NOT NULL. Broker-imported trades
+        # (broker.py) sometimes genuinely don't have a known stop, so this
+        # constraint needs relaxing. SQLite can't drop NOT NULL with ALTER
+        # TABLE, so rebuild the table when an old-schema DB is detected.
+        if cols_info.get("stop_price") and cols_info["stop_price"]["notnull"] == 1:
+            _rebuild_trades_nullable_stop(conn)
+
+
+def _rebuild_trades_nullable_stop(conn):
+    conn.executescript("""
+        CREATE TABLE trades_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            opened_at TEXT NOT NULL,
+            closed_at TEXT,
+            instrument TEXT NOT NULL,
+            direction TEXT NOT NULL CHECK(direction IN ('long','short')),
+            entry_price REAL NOT NULL,
+            stop_price REAL,
+            target_price REAL,
+            exit_price REAL,
+            size_units REAL NOT NULL,
+            account_balance_at_entry REAL NOT NULL,
+            risk_pct REAL,
+            planned_r_multiple REAL,
+            realized_r_multiple REAL,
+            setup_tag TEXT,
+            followed_plan INTEGER DEFAULT 1,
+            emotion_before TEXT,
+            emotion_after TEXT,
+            notes TEXT,
+            status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','closed')),
+            plan_id INTEGER REFERENCES plans(id),
+            mt5_ticket INTEGER
+        );
+        INSERT INTO trades_new SELECT id, opened_at, closed_at, instrument, direction,
+            entry_price, stop_price, target_price, exit_price, size_units,
+            account_balance_at_entry, risk_pct, planned_r_multiple, realized_r_multiple,
+            setup_tag, followed_plan, emotion_before, emotion_after, notes, status,
+            plan_id, mt5_ticket
+        FROM trades;
+        DROP TABLE trades;
+        ALTER TABLE trades_new RENAME TO trades;
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_trades_mt5_ticket
+            ON trades(mt5_ticket) WHERE mt5_ticket IS NOT NULL;
+    """)
 
 
 @contextmanager
