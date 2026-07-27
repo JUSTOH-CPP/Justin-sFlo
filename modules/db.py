@@ -68,6 +68,16 @@ CREATE TABLE IF NOT EXISTS calendar_cache (
     fetched_at TEXT NOT NULL,
     payload TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    body TEXT,
+    category TEXT,
+    trade_id INTEGER REFERENCES trades(id),
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
 """
 
 
