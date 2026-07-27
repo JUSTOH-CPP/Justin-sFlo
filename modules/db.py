@@ -87,6 +87,17 @@ CREATE TABLE IF NOT EXISTS reset_events (
     completed_at TEXT,
     action_taken TEXT
 );
+
+CREATE TABLE IF NOT EXISTS lessons (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    content TEXT,
+    category TEXT,
+    order_index INTEGER,
+    source TEXT,
+    created_at TEXT NOT NULL,
+    completed_at TEXT
+);
 """
 
 
