@@ -85,11 +85,17 @@ each commit (no push access configured for this environment).
 ## Status
 
 - [x] Step 1: `db.py` — SQLite schema, verified
-- [ ] Step 2: `journal.py`
-- [ ] Step 3: `risk.py`
-- [ ] Step 4: `plan.py`
-- [ ] Step 5: `discipline.py`
-- [ ] Step 6: `broker.py` (read-only MT5 import)
+- [x] Step 2: `journal.py`
+- [x] Step 3: `risk.py`
+- [x] Step 4: `plan.py`
+- [x] Step 5: `discipline.py`
+- [x] Step 6: `broker.py` (read-only MT5 import) — live connection confirmed
+      working against Justin's real MT5 terminal (`verify_broker.py`),
+      returned 0 closed positions as expected (fresh/demo account, no
+      history yet). Position-reconstruction logic (matching IN/OUT deals,
+      computing R, handling missing stops) is tested against mocked deal
+      data only — not yet confirmed against a real closed trade's actual
+      field values. Re-verify once real trade history exists.
 - [ ] Step 7: `news.py`
 - [ ] Step 8: `notebook.py`
 - [ ] Step 9: `sanctuary.py`

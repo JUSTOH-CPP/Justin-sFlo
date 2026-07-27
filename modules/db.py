@@ -62,6 +62,12 @@ CREATE TABLE IF NOT EXISTS coach_notes (
     leaks TEXT,
     action_item TEXT
 );
+
+CREATE TABLE IF NOT EXISTS calendar_cache (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fetched_at TEXT NOT NULL,
+    payload TEXT NOT NULL
+);
 """
 
 
