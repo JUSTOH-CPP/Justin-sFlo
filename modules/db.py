@@ -78,6 +78,15 @@ CREATE TABLE IF NOT EXISTS notes (
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS reset_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trigger_trade_id INTEGER REFERENCES trades(id),
+    trigger_reason TEXT NOT NULL,
+    triggered_at TEXT NOT NULL,
+    completed_at TEXT,
+    action_taken TEXT
+);
 """
 
 
