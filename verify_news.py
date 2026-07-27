@@ -10,7 +10,11 @@ Usage:
     python verify_news.py
 """
 
+from modules.db import init_db
 from modules import news
+
+init_db()  # ensures calendar_cache (and any other pending migration) exists
+           # on this DB before we try to write to it
 
 print("Fetching live economic calendar (force_refresh, bypassing cache)...")
 events = news.get_events(force_refresh=True)

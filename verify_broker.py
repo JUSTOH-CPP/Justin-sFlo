@@ -12,7 +12,10 @@ place, modify, or close anything.
 """
 
 from datetime import datetime, timedelta
+from modules.db import init_db
 from modules import broker
+
+init_db()  # ensure the DB schema is current before anything writes to it
 
 print("Connecting to MT5 terminal...")
 broker.connect()
