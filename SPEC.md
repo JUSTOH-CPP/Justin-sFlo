@@ -107,4 +107,4 @@ each commit (no push access configured for this environment).
       (a) Anthropic's small signup credit, (b) swap to a free local
       model via Ollama, same interface. Deferred, not blocking.
 - [x] Step 11: `academy.py`
-- [ ] Step 12: `app.py` — Streamlit UI tying every module together
+- [x] Step 12: `app.py` — Streamlit UI tying every module together
