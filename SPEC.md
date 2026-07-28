@@ -96,9 +96,15 @@ each commit (no push access configured for this environment).
       computing R, handling missing stops) is tested against mocked deal
       data only — not yet confirmed against a real closed trade's actual
       field values. Re-verify once real trade history exists.
-- [ ] Step 7: `news.py`
-- [ ] Step 8: `notebook.py`
-- [ ] Step 9: `sanctuary.py`
-- [ ] Step 10: `coach.py`
-- [ ] Step 11: `academy.py`
+- [x] Step 7: `news.py` — live feed confirmed working end to end on
+      Justin's machine (verify_news.py)
+- [x] Step 8: `notebook.py`
+- [x] Step 9: `sanctuary.py`
+- [x] Step 10: `coach.py` — built and tested against a mocked Claude API
+      client (JSON parsing, DB writes, error handling, markdown-fence
+      edge case all verified). Live API call NOT yet verified — Justin
+      doesn't currently have API billing set up. Options on the table:
+      (a) Anthropic's small signup credit, (b) swap to a free local
+      model via Ollama, same interface. Deferred, not blocking.
+- [x] Step 11: `academy.py`
 - [ ] Step 12: `app.py` — Streamlit UI tying every module together
