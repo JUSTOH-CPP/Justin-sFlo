@@ -107,4 +107,14 @@ each commit (no push access configured for this environment).
       (a) Anthropic's small signup credit, (b) swap to a free local
       model via Ollama, same interface. Deferred, not blocking.
 - [x] Step 11: `academy.py`
-- [ ] Step 12: `app.py` — Streamlit UI tying every module together
+- [x] Step 12: `app.py` — Streamlit UI tying every module together.
+      Independently re-verified (not just accepted): ran the actual app
+      headlessly via streamlit.testing.v1.AppTest and confirmed, through
+      real widget interaction, that trades log and close with correct
+      values/R-multiple, Plan/Notebook/Academy/Discipline tabs all work,
+      the sanctuary pending-reset banner genuinely appears after a real
+      revenge-entry scenario, and — the specific claim worth calling
+      out — a live request to the news feed does return a genuine 403
+      from this sandbox, and the app survives it gracefully both in the
+      News tab and inside the Log Trade submit handler (a trade still
+      saves correctly even when the news check fails).
