@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: app.py
+Justin's-Flo app :: app.py
 Entry point. Run with:
     streamlit run app.py
 
@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from modules.db import init_db
 from modules import journal, risk, plan, discipline, broker, news, notebook, sanctuary, coach, academy
 
-st.set_page_config(page_title="EdgeFlo", layout="wide")
+st.set_page_config(page_title="Justin's-Flo", layout="wide")
 init_db()
 
 # ----------------------------------------------------------------- Styling
@@ -93,7 +93,7 @@ section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
 </style>
 """, unsafe_allow_html=True)
 
-st.title("EdgeFlo")
+st.title("Justin's-Flo")
 st.caption("Discipline-first trading superapp — local, no subscription, your data stays on this machine.")
 
 # A pending reset (from a flagged revenge-entry) takes priority over

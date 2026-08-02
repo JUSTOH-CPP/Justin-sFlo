@@ -1,4 +1,4 @@
-# EdgeFlo app — spec
+# Justin's-Flo app — spec
 
 A local, discipline-first trading superapp inspired by EdgeFlo
 (edgeflo.com), built as a standalone desktop app in Python/Streamlit for

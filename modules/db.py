@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: db.py
+Justin's-Flo app :: db.py
 SQLite persistence layer — one local file DB, no server. All modules
 (journal, risk, discipline, coach) read/write through this file so the
 app has a single source of truth.

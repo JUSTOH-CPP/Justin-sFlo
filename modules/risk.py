@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: risk.py
+Justin's-Flo app :: risk.py
 Position sizing: fixed-fractional (the standard "risk 1% per trade" model)
 and Kelly-based sizing derived from the journal's own win-rate / avg-R
 stats, so the recommended size updates as real edge data accumulates

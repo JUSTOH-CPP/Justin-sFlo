@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: discipline.py
+Justin's-Flo app :: discipline.py
 Rule-based discipline scoring — no ML, no black box. Flags concrete,
 auditable behaviors (oversized risk, plan deviation, revenge entries)
 so the score is always explainable from the trades table. This is what

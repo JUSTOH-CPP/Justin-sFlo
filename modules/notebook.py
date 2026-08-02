@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: notebook.py
+Justin's-Flo app :: notebook.py
 Freeform notes: strategy write-ups, session reviews, mindset templates.
 Optionally linked to a specific trade (a note can stand alone, or be
 attached to trade_id for a deeper post-mortem than the journal's
