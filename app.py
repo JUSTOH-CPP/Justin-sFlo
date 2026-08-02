@@ -17,6 +17,56 @@ from modules import journal, risk, plan, discipline, broker, news, notebook, san
 st.set_page_config(page_title="EdgeFlo", layout="wide")
 init_db()
 
+# ----------------------------------------------------------------- Styling
+# Palette is grounded in the app itself, not a generic dark theme: gold
+# because XAU/USD is one of the three pairs this journal tracks, teal/coral
+# as functional win-loss signal colors (not decoration), Plex Mono for
+# every number so data reads distinctly from labels — a real distinction
+# for a quant-facing tool, not just "monospace because trading app."
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+html, body, [class*="css"] { font-family: 'IBM Plex Sans', sans-serif; }
+
+/* Numbers read as data, not prose: metrics, dataframes, number inputs */
+[data-testid="stMetricValue"], [data-testid="stMetricDelta"],
+.stDataFrame, .stNumberInput input {
+    font-family: 'IBM Plex Mono', monospace !important;
+}
+
+/* Signature element: a thin gold ticker-rule under the title, the one
+   place the accent gets to be loud */
+h1:first-of-type {
+    border-bottom: 2px solid #C9A227;
+    padding-bottom: 0.4rem;
+}
+
+/* Metric cards: subtle surface lift instead of a flat number floating
+   in space */
+[data-testid="stMetric"] {
+    background-color: #1B212B;
+    border: 1px solid #2A3240;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+}
+
+/* Discipline / warning banners get a left accent bar instead of a
+   generic full-color box, so a page with several stays scannable */
+div[data-testid="stAlertContainer"] {
+    border-left: 3px solid #C9A227;
+    border-radius: 4px;
+}
+
+/* Tab underline uses the same gold as the ticker-rule, not Streamlit's
+   default red, so the accent stays consistent across the whole app */
+.stTabs [aria-selected="true"] {
+    color: #C9A227 !important;
+    border-bottom-color: #C9A227 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.title("EdgeFlo")
 st.caption("Discipline-first trading superapp — local, no subscription, your data stays on this machine.")
 
