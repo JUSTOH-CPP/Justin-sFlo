@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: plan.py
+Justin's-Flo app :: plan.py
 Trade plan management: define setups/criteria/invalidation/management
 rules, pin exactly one plan as Active, and track compliance against it.
 Mirrors EdgeFlo's "Plan" module — the plan is meant to be visible during

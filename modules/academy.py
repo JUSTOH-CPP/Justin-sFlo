@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: academy.py
+Justin's-Flo app :: academy.py
 Personal lesson/checklist tracker — your own study material, not
 EdgeFlo's proprietary course content. Same shape as their Academy module
 (ordered lessons, mark-complete progress) applied to whatever you drop

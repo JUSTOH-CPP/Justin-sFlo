@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: coach.py
+Justin's-Flo app :: coach.py
 AI coaching layer. Sends a closed trade + its discipline flags to Claude
 for a short, structured review (strengths / leaks / one action item) and
 stores the result alongside the trade. Requires an ANTHROPIC_API_KEY

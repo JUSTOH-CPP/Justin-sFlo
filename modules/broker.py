@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: broker.py
+Justin's-Flo app :: broker.py
 Read-only MetaTrader5 integration. Pulls CLOSED trade history into the
 journal automatically. Does NOT place orders, does NOT touch open
 positions, and does NOT enforce guardrails live — see SPEC.md for why

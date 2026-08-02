@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: sanctuary.py
+Justin's-Flo app :: sanctuary.py
 A structured pause after a flagged revenge-entry pattern — same idea as
 EdgeFlo's Sanctuary module. Deliberately simple: this module tracks
 *that* a reset was triggered and completed, and provides the routine

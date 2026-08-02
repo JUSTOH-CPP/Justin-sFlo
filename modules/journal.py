@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: journal.py
+Justin's-Flo app :: journal.py
 Trade journal: log entries, close trades, compute realized R-multiples.
 This is the ledger everything else (risk sizing, discipline scoring, AI
 coaching, dashboard stats) is derived from.

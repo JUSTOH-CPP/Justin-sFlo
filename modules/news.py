@@ -1,5 +1,5 @@
 """
-EdgeFlo app :: news.py
+Justin's-Flo app :: news.py
 Economic calendar via Forex Factory's public weekly feed (no API key
 needed; widely used by MT4/MT5 EAs per public forum threads). Flags
 whether a given instrument has a high-impact event inside a no-trade
