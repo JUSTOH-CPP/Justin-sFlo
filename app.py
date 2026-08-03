@@ -11,6 +11,7 @@ section for the one action used constantly.
 
 import streamlit as st
 import pandas as pd
+import altair as alt
 from datetime import datetime, timedelta
 
 from modules.db import init_db
@@ -170,6 +171,57 @@ def render_dashboard():
               help="Starts at 100, loses points for flagged behavior: oversized risk (-5), "
                    "plan deviation (-4), revenge entries (-8). See the Discipline tab for "
                    "exactly which trades cost you points.")
+
+    streak = discipline.current_streak()
+    if streak["ever_flagged"]:
+        st.caption(f"\U0001F525 **{streak['clean_trade_streak']} trades clean** since your last "
+                   f"discipline flag ({streak['days_since_last_flag']} day"
+                   f"{'s' if streak['days_since_last_flag'] != 1 else ''} ago).")
+    elif streak["clean_trade_streak"] > 0:
+        st.caption(f"\U0001F525 **{streak['clean_trade_streak']} trades**, zero discipline flags so far.")
+
+    curve = journal.equity_curve()
+    if curve:
+        st.subheader("Performance Over Time")
+        col_curve, col_hist = st.columns(2)
+
+        with col_curve:
+            st.caption("Cumulative R — your edge over time, independent of position sizing changes.")
+            curve_df = pd.DataFrame(curve)
+            curve_df["closed_at"] = pd.to_datetime(curve_df["closed_at"])
+            equity_chart = alt.Chart(curve_df).mark_line(
+                color="#C9A227", point=alt.OverlayMarkDef(color="#C9A227", size=40)
+            ).encode(
+                x=alt.X("closed_at:T", title=None),
+                y=alt.Y("cumulative_r:Q", title="Cumulative R"),
+                tooltip=[alt.Tooltip("closed_at:T", title="Closed"),
+                         alt.Tooltip("cumulative_r:Q", title="Cumulative R", format=".2f"),
+                         alt.Tooltip("r_multiple:Q", title="This trade", format=".2f")]
+            ).properties(height=280)
+            st.altair_chart(equity_chart, width="stretch")
+
+        with col_hist:
+            st.caption("Distribution of individual trade R-multiples — shape of your edge, not just its average.")
+            hist_df = pd.DataFrame(curve)
+            hist_df["result"] = hist_df["r_multiple"].apply(
+                lambda r: "Win" if r > 0 else ("Loss" if r < 0 else "Breakeven"))
+            hist_chart = alt.Chart(hist_df).mark_bar().encode(
+                x=alt.X("r_multiple:Q", bin=alt.Bin(maxbins=20), title="R-multiple"),
+                y=alt.Y("count():Q", title="Trades"),
+                color=alt.Color("result:N",
+                                 scale=alt.Scale(domain=["Win", "Loss", "Breakeven"],
+                                                  range=["#3FB68B", "#E2574C", "#8A93A6"]),
+                                 legend=alt.Legend(title=None)),
+                tooltip=[alt.Tooltip("count():Q", title="Trades")]
+            ).properties(height=280)
+            st.altair_chart(hist_chart, width="stretch")
+
+    setup_stats = journal.performance_by_setup()
+    if setup_stats:
+        st.subheader("Performance by Setup")
+        st.caption("Only trades with a setup_tag are included — unlabeled trades aren't a "
+                   "'setup' and would muddy this comparison.")
+        st.dataframe(pd.DataFrame(setup_stats), width="stretch", hide_index=True)
 
     active_plan = plan.get_active_plan()
     st.subheader("Active Plan")

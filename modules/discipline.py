@@ -104,3 +104,40 @@ def discipline_score():
         breakdown[r["event_type"]] = {"count": r["n"], "points_lost": deduction}
 
     return {"score": max(0, score), "breakdown": breakdown}
+
+
+def current_streak():
+    """How many of the most recent closed trades, in a row, have zero
+    discipline flags — walking backward from now until the first flagged
+    trade is hit. Not 'days since a flag' by calendar time alone, since a
+    trader who took one trade last week and none since would otherwise
+    show a misleadingly large streak; this counts actual clean TRADES,
+    with days_since_last_flag as secondary context alongside it."""
+    # Secondary sort key (id) makes this deterministic even when two
+    # trades share an identical closed_at timestamp (same-second closes
+    # are unlikely at Justin's H1/M15 timeframes, but not impossible, and
+    # relying on an ambiguous tie-break would make this function's
+    # correctness depend on ORDER BY DESC's undefined behavior for ties).
+    trades = sorted(list_trades(), key=lambda t: (t["closed_at"] or "", t["id"]), reverse=True)
+    trades = [t for t in trades if t["status"] == "closed"]
+
+    streak = 0
+    last_flag_at = None
+    for t in trades:
+        if list_events(t["id"]):
+            last_flag_at = t["closed_at"]
+            break
+        streak += 1
+
+    days_since_last_flag = None
+    if last_flag_at:
+        try:
+            days_since_last_flag = max(0, (datetime.now() - datetime.fromisoformat(last_flag_at)).days)
+        except (TypeError, ValueError):
+            pass
+
+    return {
+        "clean_trade_streak": streak,
+        "days_since_last_flag": days_since_last_flag,
+        "ever_flagged": last_flag_at is not None,
+    }
