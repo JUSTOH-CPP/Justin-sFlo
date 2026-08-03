@@ -109,3 +109,59 @@ def performance_summary(instrument=None):
         "total_r": round(sum(r_values), 2) if r_values else None,
         "plan_adherence_pct": round(len(followed) / len(trades) * 100, 1),
     }
+
+
+def equity_curve():
+    """Cumulative R-multiple over time, one point per closed trade in
+    chronological order (by closed_at). This is 'equity' measured in R,
+    not currency — deliberately, since position sizing has changed across
+    trades and currency P&L would make early small-size trades look
+    meaningless next to later larger ones. Skips trades with no realized
+    R yet (shouldn't happen for closed trades, but defensive)."""
+    # Secondary sort key (id) for the same reason as discipline.py's
+    # current_streak(): deterministic behavior even under a same-second
+    # closed_at tie, rather than relying on ORDER BY's undefined
+    # tie-break order.
+    trades = sorted(
+        (t for t in list_trades(status="closed") if t["realized_r_multiple"] is not None),
+        key=lambda t: (t["closed_at"], t["id"])
+    )
+    cumulative = 0.0
+    points = []
+    for t in trades:
+        cumulative += t["realized_r_multiple"]
+        points.append({
+            "trade_id": t["id"],
+            "closed_at": t["closed_at"],
+            "r_multiple": t["realized_r_multiple"],
+            "cumulative_r": round(cumulative, 4),
+        })
+    return points
+
+
+def performance_by_setup():
+    """Same stats as performance_summary(), grouped by setup_tag. Trades
+    with no setup_tag (None or blank) are excluded — they're not a
+    'setup', they're unlabeled, and mixing them into one bucket would
+    misrepresent both the labeled setups and the unlabeled trades."""
+    trades = list_trades(status="closed")
+    by_tag = {}
+    for t in trades:
+        tag = (t["setup_tag"] or "").strip()
+        if not tag:
+            continue
+        by_tag.setdefault(tag, []).append(t)
+
+    results = []
+    for tag, tag_trades in by_tag.items():
+        r_values = [t["realized_r_multiple"] for t in tag_trades if t["realized_r_multiple"] is not None]
+        wins = [r for r in r_values if r > 0]
+        results.append({
+            "setup_tag": tag,
+            "count": len(tag_trades),
+            "win_rate": round(len(wins) / len(r_values) * 100, 1) if r_values else None,
+            "avg_r": round(sum(r_values) / len(r_values), 2) if r_values else None,
+            "total_r": round(sum(r_values), 2) if r_values else None,
+        })
+
+    return sorted(results, key=lambda r: r["total_r"] or 0, reverse=True)
