@@ -58,6 +58,39 @@ div[data-testid="stAlertContainer"] {
     border-bottom-color: #C9A227 !important;
 }
 
+/* Consistent rounded system — every interactive surface shares one
+   radius scale instead of Streamlit's mix of square/slightly-rounded
+   defaults, so the app reads as one designed thing rather than a
+   collection of default widgets. */
+button, .stButton button, .stDownloadButton button,
+input, textarea, select,
+.stTextInput input, .stTextArea textarea, .stNumberInput input,
+.stSelectbox div[data-baseweb="select"], div[data-baseweb="popover"],
+[data-testid="stExpander"], [data-testid="stForm"],
+.stDataFrame, .stTabs [data-baseweb="tab-list"],
+div[data-testid="stAlertContainer"] {
+    border-radius: 10px !important;
+}
+[data-testid="stMetric"] { border-radius: 10px; }
+.stTabs [data-baseweb="tab"] { border-radius: 8px 8px 0 0 !important; }
+
+/* Buttons get a touch more lift to match the floating FAB's language,
+   without copying its full pill shape (that stays unique to the FAB
+   so it still reads as "the one always-available action") */
+.stButton button {
+    transition: border-color 0.15s ease;
+}
+.stButton button:hover {
+    border-color: #C9A227 !important;
+}
+
+/* Expanders (Notebook/Academy entries) get the same card treatment as
+   metrics so a page of expanders doesn't look like a bare accordion */
+[data-testid="stExpander"] {
+    border: 1px solid #2A3240;
+    overflow: hidden;
+}
+
 /* Sidebar nav: section groups read as a real menu, not a generic radio
    list — bigger tap targets, gold highlight on the active section */
 section[data-testid="stSidebar"] .stRadio label {
@@ -123,11 +156,20 @@ def render_dashboard():
     disc = discipline.discipline_score()
 
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Closed Trades", stats["count"])
-    c2.metric("Win Rate", f"{stats['win_rate']}%" if stats["win_rate"] is not None else "—")
-    c3.metric("Avg R", stats["avg_r"] if stats["avg_r"] is not None else "—")
-    c4.metric("Total R", stats["total_r"] if stats["total_r"] is not None else "—")
-    c5.metric("Discipline Score", f"{disc['score']}/100")
+    c1.metric("Closed Trades", stats["count"],
+              help="Only closed trades count here — open positions don't affect these stats yet.")
+    c2.metric("Win Rate", f"{stats['win_rate']}%" if stats["win_rate"] is not None else "—",
+              help="% of closed trades with a positive R-multiple.")
+    c3.metric("Avg R", stats["avg_r"] if stats["avg_r"] is not None else "—",
+              help="Average realized R-multiple per trade — your P&L measured in units of "
+                   "risk taken, not currency. +2R means you made twice what you risked.")
+    c4.metric("Total R", stats["total_r"] if stats["total_r"] is not None else "—",
+              help="Sum of every closed trade's R-multiple — your cumulative edge, "
+                   "independent of position sizing changes over time.")
+    c5.metric("Discipline Score", f"{disc['score']}/100",
+              help="Starts at 100, loses points for flagged behavior: oversized risk (-5), "
+                   "plan deviation (-4), revenge entries (-8). See the Discipline tab for "
+                   "exactly which trades cost you points.")
 
     active_plan = plan.get_active_plan()
     st.subheader("Active Plan")
@@ -137,6 +179,9 @@ def render_dashboard():
         if compliance["count"] > 0:
             st.write(f"Compliance: {compliance['compliance_pct']}% over {compliance['count']} trades "
                      f"(win rate {compliance['win_rate']}%, avg R {compliance['avg_r']})")
+            st.caption("Compliance = % of trades tagged to this plan where you marked "
+                       "\"followed the plan\" on close. This is the honest answer to "
+                       "\"am I actually trading my plan, or improvising and calling it one?\"")
     else:
         st.info("No active plan set — see Trading \u2192 Plan.")
 
@@ -222,13 +267,20 @@ def render_trade_log():
 
     st.divider()
     st.subheader("Position Sizer")
+    st.caption("**Fixed-fractional**: risk a fixed % of your account every trade — the safe "
+               "default, works from trade one. **Kelly**: derives the mathematically "
+               "'optimal' risk % from your own journal's win rate and average R, but needs "
+               "20+ closed trades before it has enough data to trust — it'll tell you if "
+               "you're not there yet rather than guessing.")
     method = st.radio("Method", ["Fixed-fractional", "Kelly (from journal stats)"])
     sizer_balance = st.number_input("Account Balance", value=10000.0, key="sizer_balance")
     sizer_entry = st.number_input("Entry Price", format="%.5f", key="sizer_entry")
     sizer_stop = st.number_input("Stop Price", format="%.5f", key="sizer_stop")
 
     if method == "Fixed-fractional":
-        risk_pct = st.slider("Risk % per trade", 0.1, 5.0, 1.0, 0.1)
+        risk_pct = st.slider("Risk % per trade", 0.1, 5.0, 1.0, 0.1,
+                              help="1% is the common default. Most experienced traders stay at "
+                                   "or below 2% per trade regardless of conviction.")
         if st.button("Calculate Size"):
             try:
                 result = risk.fixed_fractional_size(sizer_balance, risk_pct, sizer_entry, sizer_stop)
@@ -237,7 +289,11 @@ def render_trade_log():
             except ValueError as e:
                 st.error(str(e))
     else:
-        fraction = st.slider("Fraction of Kelly to use", 0.1, 1.0, 0.5, 0.1)
+        fraction = st.slider("Fraction of Kelly to use", 0.1, 1.0, 0.5, 0.1,
+                              help="Full Kelly (1.0) is mathematically optimal for long-run growth "
+                                   "but historically too volatile to trade live with. Half-Kelly "
+                                   "(0.5, the default) trades some growth for a much smoother "
+                                   "equity curve — the standard practical compromise.")
         if st.button("Calculate Size"):
             try:
                 result = risk.kelly_size(sizer_balance, sizer_entry, sizer_stop, fraction_of_kelly=fraction)
@@ -308,12 +364,21 @@ def render_plan():
 
 def render_discipline():
     st.subheader("Discipline Tracker")
+    st.caption("Detects three patterns automatically after every trade: **oversized risk** "
+               "(>1.5% on one trade), **plan deviation** (you marked \"didn't follow plan\" "
+               "on close), and **revenge entries** (a new trade within 30 minutes of a "
+               "losing close). This is detection after the fact, not a live block — there's "
+               "no broker connection sitting in front of your execution to stop a trade "
+               "before it happens.")
     if st.button("Re-scan journal for violations"):
         flagged = discipline.scan_trades_for_violations()
         st.success(f"Scan complete — {len(flagged)} new flag(s) logged.")
 
     disc = discipline.discipline_score()
-    st.metric("Discipline Score", f"{disc['score']}/100")
+    st.metric("Discipline Score", f"{disc['score']}/100",
+              help="100 minus 5 per oversized-risk flag, 4 per plan deviation, "
+                   "8 per revenge entry. The table below shows exactly which trades "
+                   "and which flags account for every point lost.")
     if disc["breakdown"]:
         st.dataframe(pd.DataFrame(disc["breakdown"]).T, width="stretch")
     else:
